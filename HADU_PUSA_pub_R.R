@@ -311,7 +311,6 @@ unique(hard.surveys.pub$StartLocation)
 
 unique(hard.surveys.pub$EndLocation)
 
-
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "Corner Brooke", replacement = "Corner Brook")
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "St. Albans", replacement = "St. Alban's")
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "J.T. Cheeseman PP", replacement = "J.T. Cheeseman Provincial Park")
