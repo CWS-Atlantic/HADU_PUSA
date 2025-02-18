@@ -391,7 +391,7 @@ hard.pub <-
   rowwise() %>% 
   mutate(total_birds = sum(HADU_Total, PUSA, na.rm = TRUE))
 
-
+str(hard.pub)
 ###############################
 ##   Create user interface   ##
 ###############################
@@ -432,14 +432,7 @@ ui <- miniPage(
                                           )
                                  )
                  )
-                 )#,
-
-    
-    # absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, 
-    #               draggable = TRUE, top = 500, left = 20, right = "auto", bottom = "auto", 
-    #               width = 200, height = "auto",
-    #               
-    #               htmlOutput("zoomLevel"))))
+                 )
   ))
 
 server <- function(input, output) {
@@ -449,7 +442,7 @@ server <- function(input, output) {
   ###################################
   
   pal <- colorFactor(palette = 'plasma', #this comes from the viridis package
-                     domain = hard.pub$year)
+                     domain = hard.pub$Year)
   
   ######################
   ##   Draw the map   ##
@@ -465,7 +458,7 @@ server <- function(input, output) {
     setView(-62.654, 49.373, zoom = 5) %>%
     
     addLayersControl(baseGroups = c("OceanBasemap","WorldImagery","TopoMap"),
-                     #overlayGroups = hard.pub$year, 
+                     overlayGroups = hard.pub$Year, 
                      position = "topleft",
                      options = layersControlOptions(collapsed = FALSE)) %>%
     
@@ -475,20 +468,16 @@ server <- function(input, output) {
                  weight = 2,
                  popup = popupTable(survey.lines, zcol = c("Track_ID", "Province", "Survey_Platform"), row.numbers = F, feature.id = F)) %>%
 
-    # addPolylines(data = survey.lines.nl.15,
-    #              color = "red",
-    #              weight = 2) %>%
-
     addCircleMarkers(data = hard.pub,
                      radius = log(hard.pub$total_birds) + 1,
-                     lng = as.numeric(hard.pub$longitude),
-                     lat = as.numeric(hard.pub$latitude),
+                     lng = as.numeric(hard.pub$Longitude),
+                     lat = as.numeric(hard.pub$Latitude),
                      fillOpacity = 0.6,
-                     fillColor = ~pal(year), #maybe you dont want the years colour coded, but the species?
+                     fillColor = ~pal(Year), #maybe you dont want the years colour coded, but the species?
                      color = "black",
                      weight = 1,
-                     group = as.character(hard.pub$year),
-                     popup = popupTable(hard.pub, zcol = c("Year", "Month", "Day", "HADU_total_correct", "PUSA_total_correct", "period"), row.numbers = F, feature.id = F)) %>%
+                     group = as.character(hard.pub$Year),
+                     popup = popupTable(hard.pub, zcol = c("Year", "Month", "Day", "HADU_Total", "PUSA", "Period", "Track_ID", "Survey_ID"), row.numbers = F, feature.id = F)) %>%
     
     addDrawToolbar(targetGroup='Selected',
                    polylineOptions=FALSE,
