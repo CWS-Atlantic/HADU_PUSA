@@ -85,7 +85,7 @@ hard.surveys.pub <- select(hard.surveys,
                            #observer1,      #privacy
                            #observer2,      #privacy
                            #methods.notes,  #not needed for pub
-                           weather.code,
+                           #weather.code,   #not needed for pub
                            #glare,          #unused
                            wind.speed.kt,
                            wind_direction_code)#,
@@ -240,11 +240,11 @@ hard.pub <- select(hard.pub,
                    PUSA_total_correct)
 
 
-names(hard.pub) <- c("Survey_ID",
-                     "Year",
-                     "Month",
-                     "Day",
-                     "Period",
+names(hard.pub) <- c("SurveyID_EnqueteID",
+                     "Year_Annee",
+                     "Month_Mois",
+                     "Day_Jour",
+                     "Periode",
                      "Province",
                      "Latitude",
                      "Longitude",
@@ -254,6 +254,16 @@ names(hard.pub) <- c("Survey_ID",
                      "HADU_Total",
                      "PUSA"
                      )
+
+
+#abbreviate the provinces
+hard.pub$Province <- gsub("NL", "TNL_NL", hard.pub$Province)
+hard.pub$Province <- gsub("NS", "NE_NS", hard.pub$Province)
+hard.pub$Province <- gsub("NB", "NB", hard.pub$Province)
+
+#make periode numeric
+hard.pub$Periode <- gsub("Non-Breeding", 1, hard.pub$Periode)
+hard.pub$Periode <- gsub("Breeding", 2, hard.pub$Periode)
 
 
 ###########################
@@ -267,8 +277,8 @@ hard.surveys.pub[] <- lapply(hard.surveys.pub[], gsub, pattern = "<NULL>", repla
 hard.surveys.pub[] <- lapply(hard.surveys.pub[], gsub, pattern = "<Null>", replacement = NA)
 
 #fix provinces
-hard.surveys.pub$Province <- gsub("Nova Scotia", "NS", hard.surveys.pub$Province)
-hard.surveys.pub$Province <- gsub("Newfoundland", "NL", hard.surveys.pub$Province)
+hard.surveys.pub$Province <- gsub("Nova Scotia", "NE_NS", hard.surveys.pub$Province)
+hard.surveys.pub$Province <- gsub("Newfoundland", "TNL_NL", hard.surveys.pub$Province)
 hard.surveys.pub$Province <- gsub("New Brunswick", "NB", hard.surveys.pub$Province)
 hard.surveys.pub$Province <- gsub("Prince Edward Island", "PE", hard.surveys.pub$Province)
 
@@ -284,32 +294,32 @@ range(as.numeric(hard.surveys.pub$end.lat), na.rm=T)
 range(as.numeric(hard.surveys.pub$start.lon), na.rm=T)
 range(as.numeric(hard.surveys.pub$end.lon), na.rm=T)
 
-names(hard.surveys.pub) <- c("Survey_ID",
-                             "Track_ID",
-                             "TargetSpecies_1",
-                             "TargetSpecies_2",
-                             "SurveyPlatform",
-                             "Agency",
-                             "Year",
-                             "Month",
-                             "Day",
+names(hard.surveys.pub) <- c("SurveyID_EnqueteID",
+                             "TrackID_PisteID",
+                             "TargetSpecies1_EspeceCible1",
+                             "TargetSpecies2_EspeceCible2",
+                             "Platforme",
+                             "Agency_Agence",
+                             "Year_Annee",
+                             "Month_Mois",
+                             "Day_Jour",
                              "Province",
-                             "StartLocation",
-                             "StartLatidude",
-                             "StartLongitude",
-                             "EndLocation",
-                             "EndLatidude",
-                             "EndLongitude",
-                             "Weather",
-                             "WindSpeed_kt",
-                             "WindDirection"
+                             "StartLocation_LocationDebut",
+                             "StartLatitude_LatitudeDebut",
+                             "StartLongitude_LongitudeDebut",
+                             "EndLocation_LocationFin",
+                             "EndLatitude_LatitudeFin",
+                             "EndLongitude_LongitudeFin",
+                             #"Weather_Temps",
+                             "WindSpeed_VitesseVent_kt",
+                             "WindDirection_DirectionVent"
                              )
 
 
 #fix some place names
-unique(hard.surveys.pub$StartLocation)
+unique(hard.surveys.pub$StartLocation_LocationDebut)
 
-unique(hard.surveys.pub$EndLocation)
+unique(hard.surveys.pub$EndLocation_LocationFin)
 
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "Corner Brooke", replacement = "Corner Brook")
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "St. Albans", replacement = "St. Alban's")
@@ -323,14 +333,31 @@ hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "Penninsula", rep
 
 #add Track_ID to the dataframe
 
-hard.pub <- merge(x = hard.pub, y = hard.surveys.pub[ , c("Survey_ID", "Track_ID")], by = "Survey_ID", all.x=TRUE)
+hard.pub <- merge(x = hard.pub, 
+                  y = hard.surveys.pub[, c("SurveyID_EnqueteID", "TrackID_PisteID")], 
+                  by = "SurveyID_EnqueteID", 
+                  all.x = TRUE)
 
 ###  TO DO:
-## - remove IEMR data and surveys
 ## - remove / confirm permission to use NS data
-## - TRANSLATE DATA AND HEADERS
 #
 #
+
+## - remove IEMR data and surveys
+iemr <- filter(hard.surveys.pub,
+               Agency_Agence == "CWS/IEMR")
+
+iemr.surveys <- iemr$SurveyID_EnqueteID
+iemr.tracks <- iemr$TrackID_PisteID
+
+#kick out IEMR data:
+
+hard.pub <- hard.pub[!hard.pub$SurveyID_EnqueteID %in% iemr.surveys,]
+
+hard.surveys.pub <- hard.surveys.pub[!hard.surveys.pub$SurveyID_EnqueteID %in% iemr.surveys,]
+
+survey.lines <- survey.lines[!survey.lines$TrackID_PisteID %in% iemr.tracks,]
+
 # setwd("C:/users/englishm/Documents/Harlequins/For Publication/Data/")
 # getwd()
 # 
@@ -340,20 +367,20 @@ hard.pub <- merge(x = hard.pub, y = hard.surveys.pub[ , c("Survey_ID", "Track_ID
 # write.csv(hard.surveys.pub, "CWS_Atlantic_HADU-PUSA_Conditions_1966-2024.csv", row.names = F)
 # #write GDB
 # 
-# #convert to a SF object
-# hard.sf <- st_as_sf(hard.pub,
-#                     coords = c("Longitude", "Latitude"),
-#                     crs = 4326,
-#                     agr = "constant",
-#                     remove = FALSE,
-#                     na.fail = F)
-# 
-# 
-# st_write(hard.sf,
-#          layer = "Observations",
-#          dsn = "CWS_Atlantic_HADU-PUSA_Observations_1966-2024.gdb",
-#          driver = "OpenFileGDB",
-#          append = F)
+#convert to a SF object
+hard.sf <- st_as_sf(hard.pub,
+                    coords = c("Longitude", "Latitude"),
+                    crs = 4326,
+                    agr = "constant",
+                    remove = FALSE,
+                    na.fail = F)
+
+
+st_write(hard.sf,
+         layer = "Observations",
+         dsn = "CWS_Atlantic_HADU-PUSA_Observations_1966-2024.gdb",
+         driver = "OpenFileGDB",
+         append = F)
 
 ##################################
 ##  Add rivers / survey effort  ##
@@ -366,6 +393,38 @@ survey.lines <- st_read("V:/Sackville/Wildlife/Databases/HADU_PUSA/Data/Survey t
 survey.lines <- st_transform(survey.lines, 4326)
 
 survey.lines <- st_zm(survey.lines, drop = T)
+
+survey.lines <- select(survey.lines,
+                       Track_ID,
+                       Province,
+                       Survey_Platform,
+                       Shape_Length,
+                       Shape)
+
+
+#code out the survey platform
+survey.lines$Survey_Platform <- gsub("Land", 1, survey.lines$Survey_Platform)
+survey.lines$Survey_Platform <- gsub("Boat", 2, survey.lines$Survey_Platform)
+survey.lines$Survey_Platform <- gsub("Helicopter", 3, survey.lines$Survey_Platform)
+survey.lines$Survey_Platform <- gsub("Plane", 4, survey.lines$Survey_Platform)
+
+names(survey.lines) <- c("TrackID_PisteID",
+                         "Province",
+                         "Platforme",
+                         "Length_Longueur_m",
+                         "Shape")
+
+#abbreviate the provinces
+survey.lines$Province <- gsub("Newfoundland and Labrador", "TNL_NL", survey.lines$Province)
+survey.lines$Province <- gsub("Newfoundland", "TNL_NL", survey.lines$Province)
+survey.lines$Province <- gsub("Nova Scotia", "NE_NS", survey.lines$Province)
+survey.lines$Province <- gsub("New Brunswick", "NB", survey.lines$Province)
+
+st_write(survey.lines,
+         layer = "SurveyEffort",
+         dsn = "CWS_Atlantic_HADU-PUSA_SurveyEffort_1966-2024.gdb",
+         driver = "OpenFileGDB",
+         append = F)
 
 #################
 ##   RUN APP   ##
