@@ -339,10 +339,6 @@ hard.pub <- merge(x = hard.pub,
                   all.x = TRUE)
 
 ###  TO DO:
-## - remove / confirm permission to use NS data
-#
-#
-
 ## - remove IEMR data and surveys
 iemr <- filter(hard.surveys.pub,
                Agency_Agence == "CWS/IEMR")
@@ -356,15 +352,14 @@ hard.pub <- hard.pub[!hard.pub$SurveyID_EnqueteID %in% iemr.surveys,]
 
 hard.surveys.pub <- hard.surveys.pub[!hard.surveys.pub$SurveyID_EnqueteID %in% iemr.surveys,]
 
-survey.lines <- survey.lines[!survey.lines$TrackID_PisteID %in% iemr.tracks,]
 
 # setwd("C:/users/englishm/Documents/Harlequins/For Publication/Data/")
 # getwd()
 # 
 # # write CSV
-# write.csv(hard.pub, "CWS_Atlantic_HADU-PUSA_Observations_1966-2024.csv", row.names = F)
+# write.csv(hard.pub, "CWS_Atlantic_HADU_PUSA_Observations_1966-2024_EN_FR.csv", row.names = F)
 # 
-# write.csv(hard.surveys.pub, "CWS_Atlantic_HADU-PUSA_Conditions_1966-2024.csv", row.names = F)
+# write.csv(hard.surveys.pub, "CWS_Atlantic_HADU_PUSA_Conditions_1966_2024_EN_FR.csv", row.names = F)
 # #write GDB
 # 
 #convert to a SF object
@@ -378,7 +373,7 @@ hard.sf <- st_as_sf(hard.pub,
 
 st_write(hard.sf,
          layer = "Observations",
-         dsn = "CWS_Atlantic_HADU-PUSA_Observations_1966-2024.gdb",
+         dsn = "CWS_Atlantic_HADU_PUSA_Observations_1966_2024_EN_FR.gdb",
          driver = "OpenFileGDB",
          append = F)
 
@@ -401,7 +396,6 @@ survey.lines <- select(survey.lines,
                        Shape_Length,
                        Shape)
 
-
 #code out the survey platform
 survey.lines$Survey_Platform <- gsub("Land", 1, survey.lines$Survey_Platform)
 survey.lines$Survey_Platform <- gsub("Boat", 2, survey.lines$Survey_Platform)
@@ -414,6 +408,10 @@ names(survey.lines) <- c("TrackID_PisteID",
                          "Length_Longueur_m",
                          "Shape")
 
+#kick out IEMR tracks
+survey.lines <- survey.lines[!survey.lines$TrackID_PisteID %in% iemr.tracks,]
+
+
 #abbreviate the provinces
 survey.lines$Province <- gsub("Newfoundland and Labrador", "TNL_NL", survey.lines$Province)
 survey.lines$Province <- gsub("Newfoundland", "TNL_NL", survey.lines$Province)
@@ -422,7 +420,7 @@ survey.lines$Province <- gsub("New Brunswick", "NB", survey.lines$Province)
 
 st_write(survey.lines,
          layer = "SurveyEffort",
-         dsn = "CWS_Atlantic_HADU-PUSA_SurveyEffort_1966-2024.gdb",
+         dsn = "CWS_Atlantic_HADU_PUSA_SurveyEffort_1966_2024_EN_FR.gdb",
          driver = "OpenFileGDB",
          append = F)
 
