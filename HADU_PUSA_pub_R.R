@@ -430,7 +430,7 @@ st_write(survey.lines,
 
 #!# Comment out everything before this line!!
 
-hard.pub <- read.csv("C:/Users/englishm/Documents/Harlequins/For Publication/Data/CWS_Atlantic_HADU-PUSA_Observations_1966-2024.csv")
+hard.pub <- read.csv("C:/Users/englishm/Documents/Harlequins/For Publication/Data/CWS_Atlantic_HADU_PUSA_Observations_1966_2024_EN_FR.csv")
 
 #convert to a SF object
 hard.sf <- st_as_sf(hard.pub,
