@@ -265,6 +265,9 @@ hard.pub$Province <- gsub("NB", "NB", hard.pub$Province)
 hard.pub$Periode <- gsub("Non-Breeding", 1, hard.pub$Periode)
 hard.pub$Periode <- gsub("Breeding", 2, hard.pub$Periode)
 
+# write.csv(hard.pub,
+#           "HADU_PUSA_Observations_1966-2024.csv",
+#           row.names = F)
 
 ###########################
 ##   Deal with surveys   ##
@@ -326,6 +329,9 @@ hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "St. Albans", rep
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "J.T. Cheeseman PP", replacement = "J.T. Cheeseman Provincial Park")
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "Penninsula", replacement = "Peninsula")
 
+# write.csv(hard.surveys.pub, 
+#           "HADU_PUSA_Conditions_1966-2024.csv",
+#           row.names = F)
 
 ##################################################
 ##   write CSVs and GDB for ECCC Publication    ##
