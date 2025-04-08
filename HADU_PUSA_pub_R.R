@@ -96,37 +96,63 @@ hard.surveys.pub <- select(hard.surveys,
                            #notes)           #not needed for pub
 
 
-# # # Check survey IDs are present and the same on both sheets: THIS IS GOOD FOR THE 2024-10-04 VERSION
-# #
-# # length(unique(hard.pub$survey_id))
-# # 
-# # obs.ids <- unique(hard.pub$survey_id)
-# #
-# # 
-# # length(unique(hard.surveys.pub$survey_id))
-# # 
-# # survey.ids <- (unique(hard.surveys.pub$survey_id))
-# # 
-# # survey.ids <- as.data.frame(survey.ids)
-# # 
-# # #survey.ids <- rbind(survey.ids, "x")
-# # 
-# # 
-# # obs.ids <- as.data.frame(obs.ids)
-# # 
-# # #obs.ids <- rbind(obs.ids, "x")
-# # 
-# # all.ids <- cbind(obs.ids, survey.ids)
-# # 
-# # all.ids$obs.ids <- sort(all.ids$obs.ids)
-# # 
-# # all.ids$survey.ids <- sort(all.ids$survey.ids)
-# # 
-# # 
-# # #look for mismatches, in theory they should all line up
-# # all.ids$match <- ifelse(all.ids$obs.ids == all.ids$survey.ids, "MATCH", "BIG ERROR LOL")
+##########################
+##  Fix NS DNR surveys  ##
+##########################
+
+# hard.ns <- filter(hard.obs,
+#                   notes == "NS DNR Coastal block surveys")
+# 
+# df <- as.data.frame(unique(hard.ns$survey_id))
+# names(df) <- "survey_id"
+# 
+# df$year <- substr(df$survey_id, 1,4)
+# df$month <- substr(df$survey_id, 5,6)
+# df$day <- substr(df$survey_id, 7,8)
+# 
+# names(df) <- c("survey_id",
+#                "year",
+#                "month",
+#                "day")
+# 
+# #write.csv(df, "hard_ns_survey_id.csv", row.names=F)
+# 
+# ## done
+
+#########################################################################################################
+##  Check survey IDs are present and the same on both sheets: THIS IS GOOD FOR THE 2025-03-17 VERSION  ##
+#########################################################################################################
+# 
+# length(unique(hard.pub$survey_id))
+# 
+# obs.ids <- unique(hard.pub$survey_id)
 # 
 # 
+# length(unique(hard.surveys.pub$survey_id))
+# 
+# survey.ids <- (unique(hard.surveys.pub$survey_id))
+# 
+# survey.ids <- as.data.frame(survey.ids)
+# 
+# #survey.ids <- rbind(survey.ids, "x")
+# 
+# 
+# obs.ids <- as.data.frame(obs.ids)
+# 
+# #obs.ids <- rbind(obs.ids, "x")
+# 
+# all.ids <- cbind(obs.ids, survey.ids)
+# 
+# all.ids$obs.ids <- sort(all.ids$obs.ids)
+# 
+# all.ids$survey.ids <- sort(all.ids$survey.ids)
+# 
+# 
+# #look for mismatches, in theory they should all line up
+# all.ids$match <- ifelse(all.ids$obs.ids == all.ids$survey.ids, "MATCH", "BIG ERROR LOL")
+# 
+# ## done
+#
 # ###############################################################
 # ##  Work on incorporating the PUSA survey data compilation   ##  ~~THIS IS DONE!
 # ###############################################################
@@ -330,7 +356,7 @@ hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "J.T. Cheeseman P
 hard.surveys.pub[] <- lapply(hard.surveys.pub, gsub, pattern = "Penninsula", replacement = "Peninsula")
 
 # write.csv(hard.surveys.pub, 
-#           "HADU_PUSA_Conditions_1966-2024.csv",
+#           "HADU_PUSA_Conditions_1966-2025.csv",
 #           row.names = F)
 
 ##################################################
@@ -362,10 +388,10 @@ hard.surveys.pub <- hard.surveys.pub[!hard.surveys.pub$SurveyID_EnqueteID %in% i
 # setwd("C:/users/englishm/Documents/Harlequins/For Publication/Data/")
 # getwd()
 # 
-# # write CSV
-# write.csv(hard.pub, "CWS_Atlantic_HADU_PUSA_Observations_1966-2024_EN_FR.csv", row.names = F)
-# 
-# write.csv(hard.surveys.pub, "CWS_Atlantic_HADU_PUSA_Conditions_1966_2024_EN_FR.csv", row.names = F)
+# write CSV
+write.csv(hard.pub, "CWS_Atlantic_HADU_PUSA_Observations_1966-2025_EN_FR.csv", row.names = F)
+
+write.csv(hard.surveys.pub, "CWS_Atlantic_HADU_PUSA_Conditions_1966_2025_EN_FR.csv", row.names = F)
 # #write GDB
 # 
 #convert to a SF object
@@ -379,7 +405,7 @@ hard.sf <- st_as_sf(hard.pub,
 
 st_write(hard.sf,
          layer = "Observations",
-         dsn = "CWS_Atlantic_HADU_PUSA_Observations_1966_2024_EN_FR.gdb",
+         dsn = "CWS_Atlantic_HADU_PUSA_Observations_1966_2025_EN_FR.gdb",
          driver = "OpenFileGDB",
          append = F)
 
@@ -387,9 +413,12 @@ st_write(hard.sf,
 ##  Add rivers / survey effort  ##
 ##################################
 
-#st_layers("C:/Users/EnglishM/Documents/Harlequins/For Publication/ATLR_HARD_PUSA_Tracklines_MasterDB.gdb")
 
-survey.lines <- st_read("V:/Sackville/Wildlife/Databases/HADU_PUSA/Data/Survey track lines/Compilation/HARD_PUSA_Tracklines_Compilation.gdb")
+st_layers("V:/Sackville/Wildlife/Databases/HADU_PUSA/Data/Survey track lines/PROCESSED_DATA/HARD_PUSA_TRACKLINES.gdb")
+
+#get the lines
+survey.lines <- st_read("V:/Sackville/Wildlife/Databases/HADU_PUSA/Data/Survey track lines/PROCESSED_DATA/HARD_PUSA_TRACKLINES.gdb",
+                        layer = "HADU_PUSA_TRIM_COMPILATION")
 
 survey.lines <- st_transform(survey.lines, 4326)
 
@@ -415,7 +444,7 @@ names(survey.lines) <- c("TrackID_PisteID",
                          "Shape")
 
 #kick out IEMR tracks
-survey.lines <- survey.lines[!survey.lines$TrackID_PisteID %in% iemr.tracks,]
+#survey.lines <- survey.lines[!survey.lines$TrackID_PisteID %in% iemr.tracks,]
 
 
 #abbreviate the provinces
@@ -425,8 +454,54 @@ survey.lines$Province <- gsub("Nova Scotia", "NE_NS", survey.lines$Province)
 survey.lines$Province <- gsub("New Brunswick", "NB", survey.lines$Province)
 
 st_write(survey.lines,
-         layer = "SurveyEffort",
-         dsn = "CWS_Atlantic_HADU_PUSA_SurveyEffort_1966_2024_EN_FR.gdb",
+         layer = "SurveyLines", #fix for pub
+         dsn = "CWS_Atlantic_HADU_PUSA_SurveyLines_1966_2025_EN_FR.gdb",
+         driver = "OpenFileGDB",
+         append = F)
+
+
+#get the blocks
+survey.blocks <- st_read("V:/Sackville/Wildlife/Databases/HADU_PUSA/Data/Survey track lines/PROCESSED_DATA/HARD_PUSA_TRACKLINES.gdb",
+                        layer = "HADU_PUSA_BLOCKS")
+
+survey.blocks <- st_transform(survey.blocks, 4326)
+
+survey.blocks <- st_zm(survey.blocks, drop = T)
+
+survey.blocks <- select(survey.blocks,
+                       BLOC,
+                       PROVINCE,
+                       Track_ID,
+                       Survey_Platform,
+                       #Shape_Length,
+                       Shape)
+
+#code out the survey platform
+survey.blocks$Survey_Platform <- gsub("Land", 1, survey.blocks$Survey_Platform)
+survey.blocks$Survey_Platform <- gsub("Boat", 2, survey.blocks$Survey_Platform)
+survey.blocks$Survey_Platform <- gsub("Helicopter", 3, survey.blocks$Survey_Platform)
+survey.blocks$Survey_Platform <- gsub("Plane", 4, survey.blocks$Survey_Platform)
+
+names(survey.blocks) <- c("Block",
+                         "Province",
+                         "TrackID_PisteID",
+                         "Platforme",
+                         #"Length_Longueur_m",
+                         "Shape")
+
+#kick out IEMR tracks
+#survey.blocks <- survey.blocks[!survey.blocks$TrackID_PisteID %in% iemr.tracks,]
+
+
+#abbreviate the provinces
+survey.blocks$Province <- gsub("Newfoundland and Labrador", "TNL_NL", survey.blocks$Province)
+survey.blocks$Province <- gsub("Newfoundland", "TNL_NL", survey.blocks$Province)
+survey.blocks$Province <- gsub("Nova Scotia", "NE_NS", survey.blocks$Province)
+survey.blocks$Province <- gsub("New Brunswick", "NB", survey.blocks$Province)
+
+st_write(survey.blocks,
+         layer = "SurveyBlocks", #fix for pub
+         dsn = "CWS_Atlantic_HADU_PUSA_SurveyBlocks_1966_2025_EN_FR.gdb",
          driver = "OpenFileGDB",
          append = F)
 
